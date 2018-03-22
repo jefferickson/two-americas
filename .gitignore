@@ -1,0 +1,6 @@
+# environment vars
+.env
+
+# binaries
+capturetweets
+debug

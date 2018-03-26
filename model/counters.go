@@ -27,7 +27,8 @@ func (ct *Counter) IncrementCounter() error {
 	c := session.DB(settings.db).C(counterCollection)
 
 	// find and increment
-	err := c.Update(bson.M{strings.ToLower("GeoIDTopic"): ct.GeoIDTopic}, bson.M{"$inc": bson.M{"count": 1}})
+	err := c.Update(bson.M{strings.ToLower("GeoIDTopic"): ct.GeoIDTopic},
+		bson.M{"$inc": bson.M{"count": 1}})
 
 	return err
 }

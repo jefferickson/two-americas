@@ -6,6 +6,7 @@ import (
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 type SavedTweet struct {
@@ -14,6 +15,7 @@ type SavedTweet struct {
 	SearchResponseMetadata anaconda.SearchMetadata
 	Counter                Counter
 	CountyListing          CountyGeo
+	SeenIn                 map[string]int
 	DatetimeInserted       time.Time
 }
 
@@ -43,6 +45,10 @@ func (st *SavedTweet) InsertTweet() (bool, error) {
 	err = c.Insert(st)
 	if err != nil {
 		if mgo.IsDup(err) {
+			// update SeenIn
+			c.Upsert(bson.M{strings.ToLower("TweetID"): st.TweetID},
+				bson.M{"$inc": bson.M{strings.ToLower("SeenIn") + "." + strings.ToLower(st.Counter.GeoID): 1}})
+
 			return false, nil
 		} else {
 			return false, err

@@ -69,6 +69,7 @@ func FetchCountyTopicAndInsertToDB(countyListing *model.CountyGeo, countyTopic *
 			SearchResponseMetadata: searchResult.Metadata,
 			Counter:                *countyTopic,
 			CountyListing:          *countyListing,
+			SeenIn:                 map[string]int{countyTopic.GeoID: 1},
 			DatetimeInserted:       time.Now(),
 		}
 

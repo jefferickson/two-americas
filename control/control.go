@@ -26,22 +26,33 @@ func (settings *Controller) Run() {
 	fmt.Println("Adding county/topic pairs to DB if they do not exist...")
 	model.InsertTopicCountyPairsToDB(topics, countyListings)
 
+	// start timer so that we don't hit the Twitter throttle
+	tick := time.Tick(time.Duration(15/float64(settings.TwitterMaxPer15Min)*60) * time.Second)
+
 	// start off the process!
 	fmt.Println("Starting tweet extraction...")
 	for {
+		start := time.Now()
+
 		// look up one topic/county (with low count)
 		countyTopicToRun := model.FindTopicCountyWithLowCount()
 		if countyTopicToRun == nil {
 			fmt.Println("Something didn't work. Trying again.")
 			continue
 		}
-		fmt.Println("Running:", countyTopicToRun, "at", time.Now())
+		fmt.Println("Running:", countyTopicToRun, "at", start)
 
 		// spawn go routine to fetch the data and insert into the db
 		countyListingToRun := countyListings[countyTopicToRun.GeoID]
 		go twitter.FetchCountyTopicAndInsertToDB(&countyListingToRun, countyTopicToRun)
 
-		// sleep based on throttle
-		time.Sleep(time.Duration(15/float64(settings.TwitterMaxPer15Min)*60) * time.Second)
+		// sleep until tick
+		<-tick
+
+		// print time diagnostics
+		loop_time := time.Since(start)
+		runs_per_15m := 15 * 60 / float64(loop_time/time.Second)
+		fmt.Println("Loop time:", loop_time)
+		fmt.Println("Runs per 15m: about", runs_per_15m)
 	}
 }

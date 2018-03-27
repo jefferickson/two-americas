@@ -80,7 +80,7 @@ func FetchCountyTopicAndInsertToDB(countyListing *model.CountyGeo, countyTopic *
 			nTweets++
 		}
 	}
-	fmt.Println(nTweets, "tweets added.")
+	fmt.Println(nTweets, "tweets added from", countyListing.GeoID)
 
 	// increment counter
 	err = countyTopic.IncrementCounter()

@@ -35,7 +35,7 @@ func (settings *Controller) Run() {
 			fmt.Println("Something didn't work. Trying again.")
 			continue
 		}
-		fmt.Println("Running: ", countyTopicToRun)
+		fmt.Println("Running:", countyTopicToRun, "at", time.Now())
 
 		// spawn go routine to fetch the data and insert into the db
 		countyListingToRun := countyListings[countyTopicToRun.GeoID]

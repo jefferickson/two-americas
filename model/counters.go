@@ -27,8 +27,9 @@ func (ct *Counter) IncrementCounter() error {
 	c := session.DB(settings.db).C(counterCollection)
 
 	// find and increment
-	err := c.Update(bson.M{strings.ToLower("GeoIDTopic"): ct.GeoIDTopic},
-		bson.M{"$inc": bson.M{"count": 1}})
+	_, err := c.UpdateAll(bson.M{strings.ToLower("GeoIDTopic"): ct.GeoIDTopic},
+		bson.M{"$inc": bson.M{"count": 1},
+			"$set": bson.M{"datetimelastrun": time.Now()}})
 
 	return err
 }
@@ -76,6 +77,27 @@ func InsertTopicCountyPairsToDB(topics []Topic, counties CountyListings) {
 			}
 		}
 	}
+}
+
+// FindStaleTopicCounty will return a county/topic that has the oldest
+// last-run time
+func FindStaleTopicCounty() *Counter {
+	// connect to db
+	session := connectToDB()
+	defer session.Close()
+
+	// collection counters
+	c := session.DB(settings.db).C(counterCollection)
+
+	// sort ascending by datetimelastrun and then pick one from bottom
+	var results []Counter
+	err := c.Find(bson.M{}).Sort("datetimelastrun").Limit(1).All(&results)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	return &results[0]
 }
 
 // FindTopicCountyWithLowCount will return a (random) county/topic that has the

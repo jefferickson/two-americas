@@ -34,8 +34,8 @@ func (settings *Controller) Run() {
 	for {
 		start := time.Now()
 
-		// look up one topic/county (with low count)
-		countyTopicToRun := model.FindTopicCountyWithLowCount()
+		// look up one topic/county to run (based on last run date)
+		countyTopicToRun := model.FindStaleTopicCounty()
 		if countyTopicToRun == nil {
 			fmt.Println("Something didn't work. Trying again.")
 			continue

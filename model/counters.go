@@ -15,6 +15,7 @@ type Counter struct {
 	Topic            string
 	Count            int
 	DatetimeInserted time.Time
+	DatetimeLastRun  time.Time
 }
 
 // IncrementCounter increments the counter of a county topic
@@ -65,6 +66,7 @@ func InsertTopicCountyPairsToDB(topics []Topic, counties CountyListings) {
 				Topic:            string(topic),
 				Count:            counterInit,
 				DatetimeInserted: time.Now(),
+				DatetimeLastRun:  dateTimeLastRunInit,
 			}
 
 			err := c.Insert(&record)

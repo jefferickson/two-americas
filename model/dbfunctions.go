@@ -2,6 +2,7 @@ package model
 
 import (
 	"os"
+	"time"
 
 	"github.com/globalsign/mgo"
 )
@@ -11,6 +12,8 @@ const (
 	tweetsCollection  = "tweets"
 	counterInit       = 0
 )
+
+var dateTimeLastRunInit, _ = time.Parse(time.RFC3339, "2006-03-21T00:00:00Z")
 
 type mongoSettings struct {
 	host string

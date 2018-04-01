@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -56,4 +57,24 @@ func (st *SavedTweet) InsertTweet() (bool, error) {
 	}
 
 	return true, nil
+}
+
+// AllTweets loops over all tweets, applying filter, and results slice
+func AllTweets(filter, selector bson.M) []SavedTweet {
+	// connect to db
+	session := connectToDB()
+	defer session.Close()
+
+	// collection counters
+	c := session.DB(settings.db).C(tweetsCollection)
+
+	// sort ascending by datetimelastrun and then pick one from bottom
+	var results []SavedTweet
+	err := c.Find(filter).Select(selector).All(&results)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	return results
 }

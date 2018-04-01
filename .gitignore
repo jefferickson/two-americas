@@ -4,3 +4,7 @@
 # binaries
 capturetweets
 debug
+
+# tmp
+tmp_datasets/
+.Rproj.user

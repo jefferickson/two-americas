@@ -23,18 +23,18 @@ func extractTweets() {
 	allTweets := model.AllTweets(filter, selector)
 
 	// Write out header
-	fmt.Println("tweetid", "\t", "geoid", "\t", "topic", "\t", "tweet")
+	fmt.Print("tweetid", "\t", "geoid", "\t", "topic", "\t", "tweet", "\n")
 
 	// Loop over tweets and write out
 	for _, tweet := range allTweets {
 		// delete newlines within tweets
-		clean_fulltext := strings.Replace(tweet.Status.FullText, "\n", "", -1)
+		clean_fulltext := strings.Replace(tweet.Status.FullText, "\n", " ", -1)
 
 		// write out
-		fmt.Println(tweet.TweetID, "\t",
+		fmt.Print(tweet.TweetID, "\t",
 			tweet.Counter.GeoID, "\t",
 			tweet.Counter.Topic, "\t",
-			clean_fulltext,
+			clean_fulltext, "\n",
 		)
 	}
 }

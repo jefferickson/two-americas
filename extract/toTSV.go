@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/globalsign/mgo/bson"
@@ -18,8 +19,9 @@ func extractTweets() {
 	// Set filters, selectors (can be empty for all tweets)
 	filter := bson.M{}
 	selector := bson.M{"status.fulltext": 1,
-		"tweetid": 1,
-		"counter": 1,
+		"tweetid":       1,
+		"counter":       1,
+		"countylisting": 1,
 	}
 
 	// Fetch all tweets
@@ -49,6 +51,10 @@ func extractTweets() {
 			tweet.TweetID,
 			tweet.Counter.GeoID,
 			tweet.Counter.Topic,
+			tweet.CountyListing.State,
+			tweet.CountyListing.Name,
+			strconv.FormatFloat(tweet.CountyListing.Lon, 'f', -1, 64),
+			strconv.FormatFloat(tweet.CountyListing.Lat, 'f', -1, 64),
 			clean_fulltext,
 		}
 

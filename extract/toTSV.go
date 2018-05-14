@@ -25,13 +25,17 @@ func extractTweets() {
 	// Set filters, selectors (can be empty for all tweets)
 	filter := bson.M{}
 	selector := bson.M{
-		"status.fulltext":        1,
-		"status.user.screenname": 1,
-		"status.createdat":       1,
-		"status.entities.urls":   1,
-		"tweetid":                1,
-		"counter":                1,
-		"countylisting":          1,
+		"tweetid":                         1,
+		"status.user.screenname":          1,
+		"status.createdat":                1,
+		"counter.geoid":                   1,
+		"counter.topic":                   1,
+		"countylisting.state":             1,
+		"countylisting.name":              1,
+		"countylisting.lon":               1,
+		"countylisting.lat":               1,
+		"status.fulltext":                 1,
+		"status.retweetedstatus.fulltext": 1,
 	}
 
 	// Fetch all tweets
@@ -83,8 +87,23 @@ func extractTweets() {
 
 func writeTweetRec(tweet *model.SavedTweet, writer *csv.Writer) error {
 	// delete newlines, carriage returns within tweets
-	clean_fulltext := strings.Replace(tweet.Status.FullText, "\n", " ", -1)
-	clean_fulltext = strings.Replace(clean_fulltext, "\r", " ", -1)
+	cleanTweet := func(t string) string {
+		t = strings.Replace(t, "\n", " ", -1)
+		t = strings.Replace(t, "\r", " ", -1)
+		return t
+	}
+
+	// clean tweet and retweet
+	cleanFullText := cleanTweet(tweet.Status.FullText)
+	cleanFullTextRetweet := cleanTweet(tweet.Status.RetweetedStatus.FullText)
+
+	// determine if retweet. if so, use it
+	tweetToPrint := cleanFullText
+	retweeted := "false"
+	if cleanFullTextRetweet != "" {
+		retweeted = "true"
+		tweetToPrint = cleanFullTextRetweet
+	}
 
 	// what to extract
 	tweetRec := []string{
@@ -97,7 +116,8 @@ func writeTweetRec(tweet *model.SavedTweet, writer *csv.Writer) error {
 		tweet.CountyListing.Name,
 		strconv.FormatFloat(tweet.CountyListing.Lon, 'f', -1, 64),
 		strconv.FormatFloat(tweet.CountyListing.Lat, 'f', -1, 64),
-		clean_fulltext,
+		retweeted,
+		tweetToPrint,
 	}
 
 	// write out

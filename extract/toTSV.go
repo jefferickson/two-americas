@@ -25,11 +25,13 @@ func extractTweets() {
 	// Set filters, selectors (can be empty for all tweets)
 	filter := bson.M{}
 	selector := bson.M{
-		"status.fulltext":      1,
-		"status.entities.urls": 1,
-		"tweetid":              1,
-		"counter":              1,
-		"countylisting":        1,
+		"status.fulltext":        1,
+		"status.user.screenname": 1,
+		"status.createdat":       1,
+		"status.entities.urls":   1,
+		"tweetid":                1,
+		"counter":                1,
+		"countylisting":          1,
 	}
 
 	// Fetch all tweets
@@ -87,6 +89,8 @@ func writeTweetRec(tweet *model.SavedTweet, writer *csv.Writer) error {
 	// what to extract
 	tweetRec := []string{
 		tweet.TweetID,
+		tweet.Status.User.ScreenName,
+		tweet.Status.CreatedAt,
 		tweet.Counter.GeoID,
 		tweet.Counter.Topic,
 		tweet.CountyListing.State,

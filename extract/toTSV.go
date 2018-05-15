@@ -28,6 +28,7 @@ func extractTweets() {
 		"tweetid":                         1,
 		"status.user.screenname":          1,
 		"status.createdat":                1,
+		"status.entities.urls":            1,
 		"counter.geoid":                   1,
 		"counter.topic":                   1,
 		"countylisting.state":             1,
@@ -37,9 +38,6 @@ func extractTweets() {
 		"status.fulltext":                 1,
 		"status.retweetedstatus.fulltext": 1,
 	}
-
-	// Fetch all tweets
-	allTweets := model.AllTweets(filter, selector)
 
 	// tweet file
 	tweetFile, err := os.Create(TWEETS_OUTPUT_FILE)
@@ -67,8 +65,12 @@ func extractTweets() {
 	tweetURLWriter.Comma = '\t'
 	defer tweetURLWriter.Flush()
 
+	// Create channel and get tweets concurrently
+	tweetChan := make(chan model.SavedTweet)
+	go model.IterTweets(filter, selector, tweetChan)
+
 	// Loop over tweets and write out
-	for _, tweet := range allTweets {
+	for tweet := range tweetChan {
 		// Write out tweet record
 		err := writeTweetRec(&tweet, tweetWriter)
 		if err != nil {
@@ -93,16 +95,14 @@ func writeTweetRec(tweet *model.SavedTweet, writer *csv.Writer) error {
 		return t
 	}
 
-	// clean tweet and retweet
-	cleanFullText := cleanTweet(tweet.Status.FullText)
-	cleanFullTextRetweet := cleanTweet(tweet.Status.RetweetedStatus.FullText)
-
-	// determine if retweet. if so, use it
-	tweetToPrint := cleanFullText
-	retweeted := "false"
-	if cleanFullTextRetweet != "" {
-		retweeted = "true"
-		tweetToPrint = cleanFullTextRetweet
+	// clean tweet or retweet
+	var tweetToPrint, retweet string
+	if tweet.Status.RetweetedStatus == nil {
+		tweetToPrint = cleanTweet(tweet.Status.FullText)
+		retweet = "false"
+	} else {
+		tweetToPrint = cleanTweet(tweet.Status.RetweetedStatus.FullText)
+		retweet = "true"
 	}
 
 	// what to extract
@@ -116,7 +116,7 @@ func writeTweetRec(tweet *model.SavedTweet, writer *csv.Writer) error {
 		tweet.CountyListing.Name,
 		strconv.FormatFloat(tweet.CountyListing.Lon, 'f', -1, 64),
 		strconv.FormatFloat(tweet.CountyListing.Lat, 'f', -1, 64),
-		retweeted,
+		retweet,
 		tweetToPrint,
 	}
 
